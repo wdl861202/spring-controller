@@ -1,0 +1,10 @@
+server:
+  port: 19000
+
+eureka:
+  instance:
+    hostname: host1
+
+spring:
+  application:
+    name: eureka_server_ha

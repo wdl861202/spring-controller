@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>
+				<![CDATA[
+				%d{yyyy-MM-dd HH:mm:ss.SSS} %-4relative [%thread] %-5level %logger{36} - %msg %n
+				]]>
+			</pattern>
+		</layout>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>INFO</level>
+		</filter>
+	</appender>
+
+	<!-- 通用文件日志 -->
+	<appender name="commonFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				logs/common/eureka_common.%d{yyyy-MM-dd-HH}.%i.log
+			</FileNamePattern>
+			<MaxHistory>24</MaxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>500MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>
+				<![CDATA[
+				%d{yyyy-MM-dd HH:mm:ss.SSS} %-4relative [%thread] %-5level %logger{36} - %msg %n
+				]]>
+			</Pattern>
+		</layout>
+	</appender>
+	<appender name="commonFileAsync" class="ch.qos.logback.classic.AsyncAppender" queueSize="1024" discardingThreshold="10">
+		<appender-ref ref="commonFile" />
+	</appender>
+
+	<!-- ERROR级文件日志 -->
+	<appender name="errorLevelFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				logs/error/eureka_error.%d{yyyy-MM-dd-HH}.log
+			</FileNamePattern>
+			<MaxHistory>24</MaxHistory>
+		</rollingPolicy>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>
+				<![CDATA[
+				%d{yyyy-MM-dd HH:mm:ss.SSS} %-4relative [%thread] %-5level %logger{36} - %msg %n
+				]]>
+			</Pattern>
+		</layout>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>ERROR</level>
+		</filter>
+	</appender>
+	<!-- INFO级文件日志 -->
+	<appender name="infoLevelFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				logs/info/eureka_info.%d{yyyy-MM-dd-HH}.log
+			</FileNamePattern>
+			<MaxHistory>24</MaxHistory>
+		</rollingPolicy>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>
+				<![CDATA[
+				%d{yyyy-MM-dd HH:mm:ss.SSS} %-4relative [%thread] %-5level %logger{36} - %msg %n
+				]]>
+			</Pattern>
+		</layout>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>INFO</level>
+		</filter>
+	</appender>
+	<appender name="errorLevelFileAsync" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="errorLevelFile" />
+	</appender>
+	<appender name="infoLevelFileAsync" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="infoLevelFile" />
+	</appender>
+
+	<!-- ==========logger配置=========== -->
+	<root level="DEBUG">
+		<appender-ref ref="commonFileAsync" />
+	</root>
+	<!-- 单独输出错误日志，这里要先定义ERROR级别的Logger，再定义其他，否则同一个Logger无法按级别分开记录日志 -->
+	<logger name="cias" level="ERROR">
+		<appender-ref ref="errorLevelFileAsync" />
+	</logger>
+	<logger name="cias" level="INFO">
+		<appender-ref ref="infoLevelFileAsync" />
+	</logger>
+	<logger name="org" level="ERROR">
+		<appender-ref ref="errorLevelFileAsync" />
+	</logger>
+	<logger name="org" level="INFO">
+		<appender-ref ref="infoLevelFileAsync" />
+	</logger>
+	
+	<!-- 系统的通用日志，这里需要再定义一个比ERROR级别低的Logger，否则cias的DEBUG日志不会输出 -->
+	<logger name="cias" level="DEBUG" />
+	<logger name="org.springframework.web.socket" level="TRACE" additivity="false">
+		<appender-ref ref="commonFileAsync" />
+	</logger>
+
+	<!-- 提升以下日志级别 -->
+	<logger name="org" level="INFO" />
+	<logger name="com.netflix" level="INFO" />
+	<!-- Spring控制台日志 -->
+	<logger name="org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer" level="INFO">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="org.springframework.boot.web" level="INFO">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="microservice.eureka.server.Application" level="INFO">
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+
+</configuration>
