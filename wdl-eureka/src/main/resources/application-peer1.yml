@@ -1,0 +1,14 @@
+# 节点二
+server:
+  port: 19000
+
+spring:
+  profiles: peer1
+
+eureka:
+  instance:
+    hostname: peer1
+  client:
+    register-with-eureka: false
+    serviceUrl:
+      defaultZone: http://peer2:19001/eureka
