@@ -8,7 +8,9 @@ spring:
 eureka:
   instance:
     hostname: peer2
+    prefer-ip-address: false
   client:
-    register-with-eureka: false
+    register-with-eureka: true
+    fetch-registry: true
     serviceUrl:
       defaultZone: http://peer1:19000/eureka
