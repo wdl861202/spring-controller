@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: bleach-service
+server:
+    port: 9000
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://peer1:19000/eureka,http://peer2:19001/eureka
