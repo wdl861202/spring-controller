@@ -4,6 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>bleach</groupId>
 	<artifactId>controller</artifactId>
+	<packaging>jar</packaging>
 	<version>0.0.1-SNAPSHOT</version>
 
 	<parent>
@@ -34,6 +35,22 @@
 			<groupId>bleach</groupId>
 			<artifactId>api</artifactId>
 			<version>${bleach.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security.oauth</groupId>
+			<artifactId>spring-security-oauth2</artifactId>
+			<version>2.3.5.RELEASE</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-jwt</artifactId>
+			<version>1.0.10.RELEASE</version>
 		</dependency>
 	</dependencies>
 

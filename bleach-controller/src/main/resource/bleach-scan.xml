@@ -8,20 +8,6 @@
 		http://www.springframework.org/schema/context
 		http://www.springframework.org/schema/context/spring-context-4.0.xsd">
 		
-		<context:component-scan base-package="cias.server.aop,   
-	                                        cias.server.shiro,
-											cias.server.service,
-											cias.server.systemmanagement,
-											cias.server.bd,
-											cias.server.rm,
-											cias.server.portfolio,
-											cias.server.pp,
-											cias.server.exsystem,
-											cias.server.stats,
-											cias.server.barra,
-											cias.server.websocket,
-											cias.server.tm,
-											cias.server.multiportstat,
-											cias.server.rmt" />
+		<context:component-scan base-package="bleach.*" />
 
 </beans>
