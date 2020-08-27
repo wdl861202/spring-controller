@@ -1,14 +1,16 @@
+package drr.security.configurer;
 
-package bleach.security.configurer;
+
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 
-import bleach.security.filter.JwtAuthenticationFilter;
-import bleach.security.handler.UnauthorizedLoginFailureHandler;
+import drr.security.filter.JwtAuthenticationFilter;
+import drr.security.handler.UnauthorizedLoginFailureHandler;
 
 /**
  * 前端上传token，后台验证使用
@@ -22,7 +24,7 @@ public class JwtLoginConfigurer<T extends JwtLoginConfigurer<T, B>, B extends Ht
 		extends AbstractHttpConfigurer<T, B> {
 
 	private JwtAuthenticationFilter authFilter;
-
+	
 	public JwtLoginConfigurer() {
 		this.authFilter = new JwtAuthenticationFilter();
 	}

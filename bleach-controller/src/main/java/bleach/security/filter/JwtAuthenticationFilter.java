@@ -1,5 +1,5 @@
 
-package bleach.security.filter;
+package drr.security.filter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 
-import bleach.security.JwtAuthenticationToken;
+import drr.security.token.JwtAuthenticationToken;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -60,8 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-			FilterChain filterChain) throws ServletException, IOException {
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 		if (!requiresAuthentication(request, response)) {
 			filterChain.doFilter(request, response);
 			return;
@@ -81,8 +80,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			logger.error("JWT format error", e);
 			failed = new InsufficientAuthenticationException("JWT format error", failed);
 		} catch (InternalAuthenticationServiceException e) {
-			logger.error("An internal error occurred while trying to authenticate the user.",
-					failed);
+			logger.error("An internal error occurred while trying to authenticate the user.", failed);
 			failed = e;
 		} catch (AuthenticationException e) {
 			// Authentication failed
@@ -90,7 +88,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		}
 
 		if (authResult != null) {
-			successfulAuthentication(request, response, filterChain, authResult);
+			successfulAuthentication(request, response, authResult);
 		} else if (!permissiveRequest(request)) {
 			unsuccessfulAuthentication(request, response, failed);
 			return;
@@ -99,16 +97,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		filterChain.doFilter(request, response);
 	}
 
-	protected void unsuccessfulAuthentication(HttpServletRequest request,
-			HttpServletResponse response, AuthenticationException failed)
-			throws IOException, ServletException {
+	protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
 		SecurityContextHolder.clearContext();
 		failureHandler.onAuthenticationFailure(request, response, failed);
 	}
 
-	protected void successfulAuthentication(HttpServletRequest request,
-			HttpServletResponse response, FilterChain chain, Authentication authResult)
-			throws IOException, ServletException {
+	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) throws IOException, ServletException {
 		SecurityContextHolder.getContext().setAuthentication(authResult);
 		successHandler.onAuthenticationSuccess(request, response, authResult);
 	}
@@ -121,8 +115,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		this.authenticationManager = authenticationManager;
 	}
 
-	protected boolean requiresAuthentication(HttpServletRequest request,
-			HttpServletResponse response) {
+	protected boolean requiresAuthentication(HttpServletRequest request, HttpServletResponse response) {
 		return requiresAuthenticationRequestMatcher.matches(request);
 	}
 
@@ -140,7 +133,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	public void setPermissiveUrl(String... urls) {
 		if (permissiveRequestMatchers == null) {
-			permissiveRequestMatchers = new ArrayList<>();
+			permissiveRequestMatchers = new ArrayList<>(urls.length);
 		}
 		for (String url : urls) {
 			permissiveRequestMatchers.add(new AntPathRequestMatcher(url));

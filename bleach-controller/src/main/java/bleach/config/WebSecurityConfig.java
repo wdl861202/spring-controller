@@ -1,64 +1,74 @@
 
-package bleach.config;
+package drr.config;
 
 import java.util.Arrays;
 
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.header.Header;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import bleach.security.DRRPasswordEncoder;
-import bleach.security.JwtUserService;
-import bleach.security.configurer.JwtLoginConfigurer;
-import bleach.security.configurer.UsernamePasswordLoginConfigurer;
-import bleach.security.filter.OptionsRequestFilter;
-import bleach.security.handler.JwtRefreshSuccessHandler;
-import bleach.security.handler.TokenClearLogoutHandler;
-import bleach.security.handler.UsernamePasswordSuccessHandler;
-import bleach.security.provider.JwtAuthenticationProvider;
+import drr.constant.controller.PathConst;
+import drr.security.configurer.JwtLoginConfigurer;
+import drr.security.configurer.OALoginConfigurer;
+import drr.security.filter.OptionsRequestFilter;
+import drr.security.handler.DRRHttpStatusReturningLogoutSuccessHandler;
+import drr.security.handler.JwtRefreshSuccessHandler;
+import drr.security.handler.OALoginSuccessHandler;
+import drr.security.handler.TokenClearLogoutHandler;
+import drr.security.provider.JwtAuthenticationProvider;
+import drr.security.provider.OAAuthenticationProvider;
+import drr.security.userdetails.DRRUserDetailsService;
+import drr.security.userdetails.cache.DRRUserCache;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http.authorizeRequests().antMatchers("/login").permitAll().anyRequest().authenticated();
-		http.cors().disable();
-		http.csrf().disable();
-		http.sessionManagement().disable();
-		http.formLogin().disable();
-		http.headers()
-				.addHeaderWriter(new StaticHeadersWriter(
-						Arrays.asList(new Header("Access-control-Allow-Origin", "*"),
-								new Header("Access-Control-Expose-Headers", "Authorization"))));
-		http.addFilterAfter(new OptionsRequestFilter(), CorsFilter.class);
-		http.apply(new UsernamePasswordLoginConfigurer<>())
-				.loginSuccessHandler(jsonLoginSuccessHandler());
-		http.apply(new JwtLoginConfigurer<>()).tokenValidSuccessHandler(jwtRefreshSuccessHandler())
-				.permissiveRequestUrls("/logout").and().logout()
-				.addLogoutHandler(tokenClearLogoutHandler())
-				.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler());
-	}
+	@Autowired
+	private DRRUserDetailsService drrUserDetailsService;
+
+	@Resource(name = "jwtAuthenticationProvider")
+	private AuthenticationProvider jwtAuthenticationProvider;
+
+	@Resource(name = "oaAuthenticationProvider")
+	private AuthenticationProvider oaAuthenticationProvider;
 
 	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests().antMatchers(PathConst.LOGIN_URL).permitAll().anyRequest().authenticated();
+		http.cors().disable();
+		http.csrf().disable();
+		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		http.formLogin().disable();
+		http.headers().addHeaderWriter(new StaticHeadersWriter(Arrays.asList(new Header("Access-control-Allow-Origin", "*"), new Header("Access-Control-Expose-Headers", "Authorization"))));
+		http.addFilterAfter(new OptionsRequestFilter(), CorsFilter.class);
+		http.apply(new OALoginConfigurer<>()).loginSuccessHandler(oaLoginSuccessHandler());
+		http.apply(new JwtLoginConfigurer<>()).tokenValidSuccessHandler(jwtRefreshSuccessHandler()).permissiveRequestUrls("/logout").and().logout().addLogoutHandler(tokenClearLogoutHandler())
+				.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler());
+		http.logout().logoutRequestMatcher(new AntPathRequestMatcher(PathConst.LOGOUT_URL)).logoutSuccessHandler(new DRRHttpStatusReturningLogoutSuccessHandler());
+	}
+
+	/** 认证配置 */
+	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.authenticationProvider(daoAuthenticationProvider())
-				.authenticationProvider(jwtAuthenticationProvider());
+		auth.authenticationProvider(jwtAuthenticationProvider).authenticationProvider(oaAuthenticationProvider);
 	}
 
 	@Override
@@ -67,41 +77,42 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		return super.authenticationManagerBean();
 	}
 
+	/** 认证处理 */
 	@Bean("jwtAuthenticationProvider")
 	protected AuthenticationProvider jwtAuthenticationProvider() {
-		return new JwtAuthenticationProvider(jwtUserService());
+		return new JwtAuthenticationProvider(drrUserDetailsService);
 	}
 
-	@Bean("daoAuthenticationProvider")
-	protected AuthenticationProvider daoAuthenticationProvider() throws Exception {
-		DaoAuthenticationProvider daoProvider = new DaoAuthenticationProvider();
-		daoProvider.setUserDetailsService(userDetailsService());
-		daoProvider.setPasswordEncoder(new DRRPasswordEncoder());
-		return daoProvider;
+	@Bean("oaAuthenticationProvider")
+	protected AuthenticationProvider oaAuthenticationProvider() {
+		return new OAAuthenticationProvider(drrUserDetailsService);
 	}
 
-	@Override
-	protected UserDetailsService userDetailsService() {
-		return new JwtUserService();
+	/** 用户信息 */
+	@Bean("drrUserDetailsService")
+	protected DRRUserDetailsService drrUserDetailsService() {
+		return new DRRUserDetailsService();
 	}
 
-	@Bean("jwtUserService")
-	protected JwtUserService jwtUserService() {
-		return new JwtUserService();
+	@Bean("drrUserCache")
+	protected DRRUserCache drrUserCache() {
+		return new DRRUserCache();
+	}
+
+	/** 过滤后的处理 */
+	@Bean
+	protected OALoginSuccessHandler oaLoginSuccessHandler() {
+		return new OALoginSuccessHandler(drrUserDetailsService);
 	}
 
 	@Bean
-	protected UsernamePasswordSuccessHandler jsonLoginSuccessHandler() {
-		return new UsernamePasswordSuccessHandler(jwtUserService());
-	}
-
 	protected JwtRefreshSuccessHandler jwtRefreshSuccessHandler() {
-		return new JwtRefreshSuccessHandler(jwtUserService());
+		return new JwtRefreshSuccessHandler(drrUserDetailsService);
 	}
 
 	@Bean
 	protected TokenClearLogoutHandler tokenClearLogoutHandler() {
-		return new TokenClearLogoutHandler(jwtUserService());
+		return new TokenClearLogoutHandler(drrUserDetailsService);
 	}
 
 	@Bean

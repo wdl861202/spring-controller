@@ -1,5 +1,5 @@
 
-package bleach.security.configurer;
+package drr.security.configurer;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
@@ -7,8 +7,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 
-import bleach.security.filter.UsernamePasswordAuthenticationFilter;
-import bleach.security.handler.UnauthorizedLoginFailureHandler;
+import drr.security.filter.UsernamePasswordAuthenticationFilter;
+import drr.security.handler.UnauthorizedLoginFailureHandler;
 
 /**
  * 第一次登陆生成token使用

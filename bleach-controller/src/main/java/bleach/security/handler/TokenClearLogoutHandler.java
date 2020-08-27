@@ -1,5 +1,5 @@
 
-package bleach.security.handler;
+package drr.security.handler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -8,14 +8,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
-import bleach.security.JwtUserService;
+import drr.security.userdetails.DRRUserDetailsService;
+import drr.security.userdetails.DRRUserdetailsServiceDelegate;
 
-public class TokenClearLogoutHandler implements LogoutHandler {
+public class TokenClearLogoutHandler extends DRRUserdetailsServiceDelegate implements LogoutHandler {
 
-	private JwtUserService jwtUserService;
 
-	public TokenClearLogoutHandler(JwtUserService jwtUserService) {
-		this.jwtUserService = jwtUserService;
+	public TokenClearLogoutHandler(DRRUserDetailsService drrUserDetailsService) {
+		super(drrUserDetailsService);
 	}
 
 	@Override
@@ -31,7 +31,7 @@ public class TokenClearLogoutHandler implements LogoutHandler {
 
 		UserDetails user = (UserDetails) authentication.getPrincipal();
 		if (user != null && user.getUsername() != null) {
-			jwtUserService.deleteUserLoginInfo(user.getUsername());
+			getDRRUserDetailsService().removeUser(user.getUsername());
 		}
 	}
 

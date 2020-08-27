@@ -1,5 +1,5 @@
 
-package bleach.security.filter;
+package drr.security.filter;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -18,13 +18,13 @@ import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
-import bleach.utils.GsonUtils;
+import drr.constant.controller.PathConst;
+import drr.utils.GsonUtils;
 
-public class UsernamePasswordAuthenticationFilter
-		extends AbstractAuthenticationProcessingFilter {
+public class UsernamePasswordAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
 	public UsernamePasswordAuthenticationFilter() {
-		super(new AntPathRequestMatcher("/login", "POST"));
+		super(new AntPathRequestMatcher(PathConst.LOGIN_URL, "POST"));
 	}
 
 	@Override
@@ -35,9 +35,7 @@ public class UsernamePasswordAuthenticationFilter
 	}
 
 	@Override
-	public Authentication attemptAuthentication(HttpServletRequest request,
-			HttpServletResponse response)
-			throws AuthenticationException, IOException, ServletException {
+	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
 
 		String body = StreamUtils.copyToString(request.getInputStream(), Charset.forName("UTF-8"));
 
@@ -52,8 +50,7 @@ public class UsernamePasswordAuthenticationFilter
 
 		username = username.trim();
 
-		UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
-				username, password);
+		UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(username, password);
 
 		return getAuthenticationManager().authenticate(authRequest);
 	}

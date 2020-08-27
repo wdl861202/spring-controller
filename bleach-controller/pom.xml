@@ -14,7 +14,6 @@
 
 	<properties>
 		<eureka.server>2.2.2.RELEASE</eureka.server>
-		<bleach.version>0.0.1-SNAPSHOT</bleach.version>
 	</properties>
 
 	<dependencies>
